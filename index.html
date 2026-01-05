@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Code – Prêts de matériels radios</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:#f5f7fa;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .card{background:#ffffff;border-radius:20px;box-shadow:0 10px 25px rgba(0,0,0,0.08);padding:32px;max-width:460px;width:100%;text-align:center}
+    h1{margin-top:0;font-size:1.5rem}
+    p{color:#444}
+    .qr-wrapper{margin:24px auto}
+    #qrcode{padding:12px;background:#ffffff;border-radius:16px;display:inline-block;border:1px solid #e5e7eb}
+    .small{font-size:0.9rem;color:#666}
+    .url-box{word-break:break-all;font-size:0.8rem;background:#f1f3f6;padding:8px 10px;border-radius:10px;margin-top:8px}
+    .footer{margin-top:24px;font-size:0.75rem;color:#777}
+    .input-row{margin-top:20px;display:flex;gap:8px}
+    input{flex:1;padding:10px 12px;border-radius:12px;border:1px solid #d1d5db}
+    button{padding:10px 14px;border-radius:12px;border:0;cursor:pointer;font-weight:600;background:#0f62fe;color:white}
+    button:hover{opacity:.9}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Prêt de matériels radios</h1>
+  <p>Remplissez le formulaire ci-dessous pour enregistrer un prêt ou un retour de matériel radio.</p>
+
+  <form id="loanForm">
+    <div class="input-row" style="flex-direction:column;gap:10px;margin-bottom:10px">
+      <input type="text" id="fullname" placeholder="Nom et prénom" required />
+      <select id=\"station\" required style=\"padding:10px 12px;border-radius:12px;border:1px solid #d1d5db\">
+        <option value=\"\" disabled selected>Choisir une caserne</option>
+        <option>Saint-Joseph</option>
+        <option>Fort de France</option>
+        <option>Case Pilote</option>
+        <option>Saint-Esprit</option>
+        <option>Lamentin</option>
+        <option>Trois- Ilets</option>
+        <option>Rivière Pilote</option>
+        <option>Vauclin</option>
+        <option>Rivière Salée</option>
+        <option>François</option>
+        <option>Saint-Pierre</option>
+        <option>Schoelcher</option>
+        <option>Sainte-Marie</option>
+        <option>Lorrain</option>
+        <option>Trinité</option>
+        <option>Gros Morne</option>
+        <option>Basse Pointe</option>
+        <option>Ducos</option>
+        <option>Robert</option>
+      </select>
+      <label class="small" for="loanDate">Date du prêt</label>
+      <input type="date" id="loanDate" required />
+      <label class="small" for="returnDate">Date de retour prévue</label>
+      <input type="date" id="returnDate" required />
+      <label class="small" for="radioCount">Nombre de radios</label>
+      <input type="number" id="radioCount" min="0" placeholder="Ex. 2" required />
+      <label class="small" for="chargerCount">Nombre de chargeurs</label>
+      <input type="number" id="chargerCount" min="0" placeholder="Ex. 2" required />
+      <label class="small" for="radioType">Type de radio</label>
+      <select id="radioType" required style="padding:10px 12px;border-radius:12px;border:1px solid #d1d5db">
+        <option value="" disabled selected>Sélectionner un type</option>
+        <option>Portative</option>
+        <option>Mobile véhicule</option>
+        <option>Base fixe</option>
+        <option>Autre</option>
+      </select>
+      <button type="submit">Enregistrer le prêt</button>
+    </div>
+  </form>
+
+  <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb">
+
+  <div class="qr-wrapper">
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="small">Lien actuel du formulaire :</div>
+  <div id="currentUrl" class="url-box"></div>
+
+  <div class="input-row">
+    <input id="urlInput" type="text" placeholder="Collez ici le lien de votre formulaire" />
+    <button onclick="updateQR()">Mettre à jour</button>
+  </div>
+
+  <div class="footer">Vous pouvez remplacer le lien par votre formulaire interne (Google Forms, Microsoft Forms, etc.).</div>
+</div>
+
+<!-- Librairie QRCode.js depuis CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // Lien par défaut à remplacer par votre véritable formulaire
+  let targetUrl = "https://exemple.com/formulaire-pret";
+
+  const currentUrlBox = document.getElementById('currentUrl');
+  currentUrlBox.textContent = targetUrl;
+
+  let qrCode = new QRCode(document.getElementById("qrcode"), {
+    text: targetUrl,
+    width: 200,
+    height: 200,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  function updateQR(){
+    const newUrl = document.getElementById('urlInput').value.trim();
+    if(!newUrl) return;
+    targetUrl = newUrl;
+    currentUrlBox.textContent = targetUrl;
+    document.getElementById('qrcode').innerHTML = "";
+    qrCode = new QRCode(document.getElementById("qrcode"), {
+      text: targetUrl,
+      width: 200,
+      height: 200,
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+  // Pré-remplissage des dates
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('loanDate').value = today;
+  document.getElementById('loanDate').setAttribute('max', '9999-12-31');
+  document.getElementById('returnDate').setAttribute('min', today);
+
+  // Gestion simple de la soumission du formulaire
+  document.getElementById('loanForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const fullname = document.getElementById('fullname').value.trim();
+    const station = document.getElementById('station').value.trim();
+    const loanDate = document.getElementById('loanDate').value;
+    const returnDate = document.getElementById('returnDate').value;
+
+    if(!fullname || !station || !loanDate || !returnDate){
+      alert('Merci de compléter tous les champs.');
+      return;
+    }
+
+    alert('Prêt enregistré :
+' + fullname + ' — ' + station + '
+Du ' + loanDate + ' au ' + returnDate);
+    this.reset();
+    document.getElementById('loanDate').value = today;
+    document.getElementById('returnDate').setAttribute('min', today);
+  });
+</script>
+</body>
+</html>
